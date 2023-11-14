@@ -101,7 +101,7 @@ app.get('/company/score', async (req, res) => {
     const cashFlowBalanceSheet = await knexJoinSelect(
       'balancesheet',
       'cashflow',
-      'MSFT'
+      companyName
     );
     const cashFlow = await knexSelect(
       'cashflow',

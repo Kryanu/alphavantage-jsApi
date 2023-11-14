@@ -52,7 +52,7 @@ const checkReturnOnEquity = (balanceSheet) => {
   const res = balanceSheet.map((x) => {
     return (parseInt(x.netincome) / parseInt(x.totalshareholderequity)) * 100;
   });
-  return { value: calcAverage(res) };
+  return { value: calcAverage(res), success: calcAverage(res) > 40 };
 };
 
 const checkLongTermDebt = (balanceSheet) => {

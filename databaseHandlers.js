@@ -4,8 +4,8 @@ const knex = require('knex');
 const knexConfig = {
   client: 'postgres',
   connection: {
-    // host: '172.17.0.3',
-    host:'127.0.0.1',
+    host: '172.17.0.3',
+    // host:'127.0.0.1',
     port: 5432,
     user: 'postgres',
     password: 'pass',
