@@ -1,13 +1,17 @@
 const express = require('express');
+const dotenv = require('dotenv');
 const fs = require('fs');
-const { fetchCompanyData, fetchCompanyDataDb } = require('./alphaVantage'); // Relative path to fetchCompanyData.js
-const { knexSelect, knexJoinSelect } = require('./databaseHandlers');
+const { fetchCompanyDataDb } = require('./alphaVantage'); // Relative path to fetchCompanyData.js
+const { knexSelect, knexJoinSelect, knexDistinctSelect } = require('./databaseHandlers');
 const { balanceSheetTests } = require('./calculations/balanceSheet');
 const { checkCashFlow } = require('./calculations/cashflow');
 const cors = require('cors');
 const { checkIncomeStatement } = require('./calculations/incomeStatement');
+const { retrieveData } = require('./polygon');
+const { getHighestValue, pricePercentage } = require('./helpers');
 const app = express();
 app.use(cors());
+dotenv.config();
 const port = 3000;
 
 app.get('/company', async (req, res) => {
@@ -113,16 +117,45 @@ app.get('/company/score', async (req, res) => {
       ['fiscaldateending', 'netincome', 'grossprofit', 'totalrevenue'],
       companyName
     );
-      
     res.send({
       balanceSheet: balanceSheetTests(balanceSheet, cashFlowBalanceSheet),
       cashFlow: checkCashFlow(cashFlow),
       incomeStatement: checkIncomeStatement(incomeStatement),
     });
-  }catch(ex){
-    res.status(500).send('Company Data not found')
+  } catch (ex) {
+    res.status(500).send('Company Data not found');
   }
-  
+});
+
+app.get('/company/companies', async (req, res) => {
+  try {
+    const data = await knexDistinctSelect('cashflow', 'symbol');
+
+    res.json(data);
+  } catch (ex) {
+    console.log(ex);
+  }
+});
+
+app.get('/company/close-over-high', async (req, res) => {
+  const ticker = req.query?.ticker;
+  const formattedDate = new Date().toISOString().split('T')[0];
+  const yearlyUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/year/2020-01-01/${formattedDate}?adjusted=true&apiKey=${process.env.POLY_API_KEY}`;
+  const yesterdayUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/prev?adjusted=true&apiKey=${process.env.POLY_API_KEY}`;
+  try {
+    if (ticker) {
+      const yearly = await retrieveData(yearlyUrl);
+      //For the past 2 years*
+      const allTimeHigh = getHighestValue(yearly.results);
+      const yesterday = await retrieveData(yesterdayUrl);
+      const close = yesterday.results[0].c;
+      res.status(200).json({ ath: pricePercentage(close, allTimeHigh) });
+    } else {
+      res.status(400).send('Parameters are undefined');
+    }
+  } catch (ex) {
+    res.status(500).send('An Error has occurred.' + ex);
+  }
 });
 
 app.listen(port, () => {

@@ -1,3 +1,3 @@
-docker run --name pg-db --hostname=848bb8519350 --env=POSTGRES_PASSWORD=pass --env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/15/bin --env=GOSU_VERSION=1.16 --env=LANG=en_US.utf8 --env=PG_MAJOR=15 --env=PG_VERSION=15.3-1.pgdg120+1 --env=PGDATA=/var/lib/postgresql/data --volume=/var/lib/postgresql/data --ip 127.0.0.2 -p 5432:5432 --network node-api --restart=no --runtime=runc -d postgres
+@REM docker run --name pg-db --hostname=848bb8519350 --env=POSTGRES_PASSWORD=pass --env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/15/bin --env=GOSU_VERSION=1.16 --env=LANG=en_US.utf8 --env=PG_MAJOR=15 --env=PG_VERSION=15.3-1.pgdg120+1 --env=PGDATA=/var/lib/postgresql/data --volume=/var/lib/postgresql/data --ip 127.0.0.2 -p 5432:5432 --network node-api --restart=no --runtime=runc -d postgres
 
 docker run --name finance-node-api  -p 3000:3000 --network node-api -d kryanu/my-node-api:latest 

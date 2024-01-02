@@ -4,7 +4,7 @@ const knex = require('knex');
 const knexConfig = {
   client: 'postgres',
   connection: {
-    host: '172.17.0.3',
+    host: '172.17.0.2',
     // host:'127.0.0.1',
     port: 5432,
     user: 'postgres',
@@ -40,6 +40,7 @@ const cashFlowInsert = (response) => {
     };
   });
   knexInsert('cashflow', dbPayload);
+  knexInsert('companies',{symbol})
 };
 
 const incomeStatementInsert = (response) => {
@@ -55,10 +56,12 @@ const incomeStatementInsert = (response) => {
     };
   });
   knexInsert('incomestatement', dbPayload);
+  knexInsert('companies',{symbol})
 };
 
 const balanceSheetInsert = (response) => {
   const { symbol, annualReports } = response.data;
+  
   const dbPayload = annualReports.map((x) => {
     return {
       hash: hash(x),
@@ -71,6 +74,7 @@ const balanceSheetInsert = (response) => {
   });
 
   knexInsert('balancesheet', dbPayload);
+  knexInsert('companies',{symbol})
 };
 
 const knexSelect = async (table, columns, symbol) => {
@@ -86,6 +90,19 @@ const knexSelect = async (table, columns, symbol) => {
     knexDb.destroy();
   }
 };
+
+const knexDistinctSelect = async (table, col) => {
+    const knexDb = knex(knexConfig);
+    try {
+      return await knexDb(table)
+      .select(col)
+      .distinct()
+    }catch (ex){
+      console.log(ex);
+    }finally {
+      knexDb.destroy();
+    }
+}
 
 const knexJoinSelect = async (table, joinTable, companyName) => {
   const knexDb = knex(knexConfig);
@@ -113,3 +130,4 @@ exports.incomeStatementInsert = incomeStatementInsert;
 exports.balanceSheetInsert = balanceSheetInsert;
 exports.knexSelect = knexSelect;
 exports.knexJoinSelect = knexJoinSelect;
+exports.knexDistinctSelect = knexDistinctSelect;
