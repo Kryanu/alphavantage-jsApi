@@ -72,13 +72,24 @@ const checkLongTermDebt = (balanceSheet) => {
 
 const balanceSheetTests = (balancesheet, incomeJoinTable) => {
   let incomeSheet = parseIncomeSheetData(incomeJoinTable);
-  return {
+  let count = 0;
+  const results = {
     retainedEarnings: checkRetainedEarnings(
       parseBalanceSheetData(balancesheet)
     ),
     returnOnEquity: checkReturnOnEquity(incomeSheet),
     longTermDebt: checkLongTermDebt(incomeSheet),
   };
+  for(const test in results){
+    if(results[test].success){
+      count++;
+    }
+  }
+
+  return {
+    ...results,
+    successCount: count
+  }
 };
 
 exports.checkRetainedEarnings = checkRetainedEarnings;

@@ -33,9 +33,17 @@ const checkCapEx = (cashFlow) => {
 
 const checkCashFlow = (cashFlow) => {
   const parsedData = parseCashFlow(cashFlow);
-  return {
+  const results = {
     capExOnEarnings: checkCapEx(parsedData),
   };
+  let count = 0;
+  if(results.capExOnEarnings.success){
+    count++
+  }
+  return {
+    ...results,
+    successCount:count
+  }
 };
 
 exports.checkCashFlow = checkCashFlow;

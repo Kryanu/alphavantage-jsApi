@@ -69,11 +69,21 @@ const checkNetProfitMarginAvg = (incomeStatement) => {
 
 const checkIncomeStatement = (incomeStatement) => {
   const parsed = parseIncomeStatement(incomeStatement);
-  return {
+  let count = 0;
+  const results = {
     netProfit: checkNetProfit(parsed),
     grossProfitMarginAvg: checkGrossProfitMarginAvg(parsed),
     netProfitMarginAvg: checkNetProfitMarginAvg(parsed),
   };
+  for(const test in results){
+    if(results[test].success){
+      count++;
+    }
+  }
+  return {
+    ...results,
+    successCount: count
+  }
 };
 
 exports.checkIncomeStatement = checkIncomeStatement;

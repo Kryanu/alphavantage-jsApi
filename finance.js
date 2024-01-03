@@ -2,13 +2,18 @@ const express = require('express');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const { fetchCompanyDataDb } = require('./alphaVantage'); // Relative path to fetchCompanyData.js
-const { knexSelect, knexJoinSelect, knexDistinctSelect } = require('./databaseHandlers');
+const {
+  knexSelect,
+  knexJoinSelect,
+  knexDistinctSelect,
+} = require('./databaseHandlers');
 const { balanceSheetTests } = require('./calculations/balanceSheet');
 const { checkCashFlow } = require('./calculations/cashflow');
 const cors = require('cors');
 const { checkIncomeStatement } = require('./calculations/incomeStatement');
 const { retrieveData } = require('./polygon');
 const { getHighestValue, pricePercentage } = require('./helpers');
+
 const app = express();
 app.use(cors());
 dotenv.config();
@@ -117,10 +122,20 @@ app.get('/company/score', async (req, res) => {
       ['fiscaldateending', 'netincome', 'grossprofit', 'totalrevenue'],
       companyName
     );
-    res.send({
+
+    const tests = {
       balanceSheet: balanceSheetTests(balanceSheet, cashFlowBalanceSheet),
       cashFlow: checkCashFlow(cashFlow),
       incomeStatement: checkIncomeStatement(incomeStatement),
+    };
+    let total = 0;
+    for(const test in tests){
+      total += tests[test].successCount;
+    }
+
+    res.send({
+      ...tests,
+      succesCount: total
     });
   } catch (ex) {
     res.status(500).send('Company Data not found');
