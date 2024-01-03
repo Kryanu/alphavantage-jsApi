@@ -128,14 +128,17 @@ app.get('/company/score', async (req, res) => {
       cashFlow: checkCashFlow(cashFlow),
       incomeStatement: checkIncomeStatement(incomeStatement),
     };
-    let total = 0;
+    let totalSuccess = 0;
+    let totalTests = 0;
     for(const test in tests){
-      total += tests[test].successCount;
+      totalSuccess += tests[test].successCount;
+      totalTests += tests[test].totalTests;
     }
 
     res.send({
       ...tests,
-      succesCount: total
+      succesCount: totalSuccess,
+      totalTests
     });
   } catch (ex) {
     res.status(500).send('Company Data not found');
@@ -160,11 +163,16 @@ app.get('/company/close-over-high', async (req, res) => {
   try {
     if (ticker) {
       const yearly = await retrieveData(yearlyUrl);
-      //For the past 2 years*
-      const allTimeHigh = getHighestValue(yearly.results);
       const yesterday = await retrieveData(yesterdayUrl);
       const close = yesterday.results[0].c;
-      res.status(200).json({ ath: pricePercentage(close, allTimeHigh) });
+      const priceDistance = pricePercentage(close, getHighestValue(yearly.results));
+      const testFactor = 8;
+      let success = false;
+      if(priceDistance >= testFactor){
+        success = true;
+      }
+
+      res.status(200).json({ priceDistance, success  });
     } else {
       res.status(400).send('Parameters are undefined');
     }

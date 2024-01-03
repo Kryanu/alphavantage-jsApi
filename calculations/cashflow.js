@@ -36,13 +36,16 @@ const checkCashFlow = (cashFlow) => {
   const results = {
     capExOnEarnings: checkCapEx(parsedData),
   };
-  let count = 0;
+  let totalTests = 0;
+  let success = 0;
   if(results.capExOnEarnings.success){
-    count++
+    success++;
+    totalTests++;
   }
   return {
     ...results,
-    successCount:count
+    successCount:success,
+    totalTests
   }
 };
 
