@@ -40,10 +40,10 @@ const checkCashFlow = (cashFlow) => {
   let success = 0;
   if(results.capExOnEarnings.success){
     success++;
-    totalTests++;
   }
+  totalTests++;
   return {
-    ...results,
+    tests:results,
     successCount:success,
     totalTests
   }

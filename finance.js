@@ -5,7 +5,8 @@ const { fetchCompanyDataDb } = require('./alphaVantage'); // Relative path to fe
 const {
   knexSelect,
   knexJoinSelect,
-  knexDistinctSelect,
+  update,
+  selectAll
 } = require('./databaseHandlers');
 const { balanceSheetTests } = require('./calculations/balanceSheet');
 const { checkCashFlow } = require('./calculations/cashflow');
@@ -94,6 +95,29 @@ app.get('/company/balanceSheet', async (req, res) => {
   }
 });
 
+app.get('/company/statements', async (req, res) => {
+  const ticker = req.query.ticker;
+  
+  
+  try {
+    const incomeStatementUrl = `https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol=${ticker}&apikey=${process.env.API_KEY}`;
+    const balanceSheetUrl = `https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol=${ticker}&apikey=${process.env.API_KEY}`;
+    const cashFlowUrl = `https://www.alphavantage.co/query?function=CASH_FLOW&symbol=${ticker}&apikey=${process.env.API_KEY}`;
+
+    if (ticker) {
+      await fetchCompanyDataDb(balanceSheetUrl, 'balanceSheet');
+      await fetchCompanyDataDb(incomeStatementUrl, 'incomeStatement');
+      await fetchCompanyDataDb(cashFlowUrl, 'cashFlow');
+      res.send().status(204)
+    } else {
+      res.status(400);
+      res.send('Parameters are undefined');
+    }
+  } catch (error) {
+    res.status(500).send('An error occurred.' + error);
+  }
+})
+
 app.get('/company/score', async (req, res) => {
   const companyName = req.query.companyName;
   try {
@@ -134,7 +158,7 @@ app.get('/company/score', async (req, res) => {
       totalSuccess += tests[test].successCount;
       totalTests += tests[test].totalTests;
     }
-
+    await update('companies',companyName, {score: `${totalSuccess}/${totalTests}`})
     res.send({
       ...tests,
       succesCount: totalSuccess,
@@ -147,14 +171,17 @@ app.get('/company/score', async (req, res) => {
 
 app.get('/company/companies', async (req, res) => {
   try {
-    const data = await knexDistinctSelect('cashflow', 'symbol');
-
+    const data = await selectAll('companies');
+    data.sort((a, b) => {
+      return a.symbol.localeCompare(b.symbol);
+    });
     res.json(data);
   } catch (ex) {
     console.log(ex);
   }
 });
-
+//Also important to retrieve PE Ratio for Price tests
+//refactor this endpoint name to price-tests and add PE ratio 
 app.get('/company/close-over-high', async (req, res) => {
   const ticker = req.query?.ticker;
   const formattedDate = new Date().toISOString().split('T')[0];
@@ -162,7 +189,11 @@ app.get('/company/close-over-high', async (req, res) => {
   const yesterdayUrl = `https://api.polygon.io/v2/aggs/ticker/${ticker}/prev?adjusted=true&apiKey=${process.env.POLY_API_KEY}`;
   try {
     if (ticker) {
+      //this needs to be added to public.companies
+      //and should only be called if value in table is null else retrieve yesterdayData only and check if larger or small
+      // if larger than update DB
       const yearly = await retrieveData(yearlyUrl);
+      
       const yesterday = await retrieveData(yesterdayUrl);
       const close = yesterday.results[0].c;
       const priceDistance = pricePercentage(close, getHighestValue(yearly.results));

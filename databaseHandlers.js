@@ -13,7 +13,7 @@ const knexConfig = {
   },
 };
 
-const knexInsert = (table, payload) => {
+const insert = (table, payload) => {
   const knexDb = knex(knexConfig);
   knexDb(table)
     .insert(payload)
@@ -39,8 +39,8 @@ const cashFlowInsert = (response) => {
       capitalexpenditures: parseInt(x.capitalExpenditures),
     };
   });
-  knexInsert('cashflow', dbPayload);
-  knexInsert('companies',{symbol})
+  insert('cashflow', dbPayload);
+  insert('companies',{symbol})
 };
 
 const incomeStatementInsert = (response) => {
@@ -55,8 +55,8 @@ const incomeStatementInsert = (response) => {
       totalrevenue: parseInt(x.totalRevenue),
     };
   });
-  knexInsert('incomestatement', dbPayload);
-  knexInsert('companies',{symbol})
+  insert('incomestatement', dbPayload);
+  insert('companies',{symbol})
 };
 
 const balanceSheetInsert = (response) => {
@@ -73,11 +73,11 @@ const balanceSheetInsert = (response) => {
     };
   });
 
-  knexInsert('balancesheet', dbPayload);
-  knexInsert('companies',{symbol})
+  insert('balancesheet', dbPayload);
+  insert('companies',{symbol})
 };
 
-const knexSelect = async (table, columns, symbol) => {
+const select = async (table, columns, symbol) => {
   const knexDb = knex(knexConfig);
   try {
     return await knexDb(table)
@@ -91,7 +91,19 @@ const knexSelect = async (table, columns, symbol) => {
   }
 };
 
-const knexDistinctSelect = async (table, col) => {
+const selectAll = async (table, columns, symbol) => {
+  const knexDb = knex(knexConfig);
+  try {
+    return await knexDb(table)
+      .select()
+  } catch (ex) {
+    console.log(ex);
+  } finally {
+    knexDb.destroy();
+  }
+};
+
+const distinctSelect = async (table, col) => {
     const knexDb = knex(knexConfig);
     try {
       return await knexDb(table)
@@ -104,7 +116,7 @@ const knexDistinctSelect = async (table, col) => {
     }
 }
 
-const knexJoinSelect = async (table, joinTable, companyName) => {
+const joinSelect = async (table, joinTable, companyName) => {
   const knexDb = knex(knexConfig);
   try {
     return await knexDb
@@ -125,9 +137,25 @@ const knexJoinSelect = async (table, joinTable, companyName) => {
   }
 };
 
+const update = async (table,symbol,data) => {
+  const knexDb = knex(knexConfig);
+  try{
+    return await knexDb(table)
+    .where('symbol', '=',symbol)
+    .update(data)
+    
+  }catch(ex){
+
+  }finally {
+    knexDb.destroy();
+  }
+}
+
 exports.cashFlowInsert = cashFlowInsert;
 exports.incomeStatementInsert = incomeStatementInsert;
 exports.balanceSheetInsert = balanceSheetInsert;
-exports.knexSelect = knexSelect;
-exports.knexJoinSelect = knexJoinSelect;
-exports.knexDistinctSelect = knexDistinctSelect;
+exports.knexSelect = select;
+exports.knexJoinSelect = joinSelect;
+exports.knexDistinctSelect = distinctSelect;
+exports.update = update;
+exports.selectAll = selectAll;

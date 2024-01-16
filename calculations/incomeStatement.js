@@ -83,7 +83,7 @@ const checkIncomeStatement = (incomeStatement) => {
     }
   }
   return {
-    ...results,
+    tests:results,
     successCount: success,
     totalTests 
   }

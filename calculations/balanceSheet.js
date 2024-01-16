@@ -89,7 +89,7 @@ const balanceSheetTests = (balancesheet, incomeJoinTable) => {
   }
 
   return {
-    ...results,
+    tests:results,
     successCount: success,
     totalTests
   }
